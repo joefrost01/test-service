@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Cucumber Report</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <h1 class="my-4">Cucumber Report</h1>
+
+    <!-- Iterate over the list of features directly -->
+    <div th:each="feature : ${features}">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 th:text="${feature.name}"></h2>
+                <p th:text="'Feature ID: ' + ${feature.id}"></p>
+                <p th:text="'URI: ' + ${feature.uri}"></p>
+            </div>
+            <div class="card-body">
+                <div th:each="scenario : ${feature.elements}">
+                    <h4 th:text="${scenario.name}"></h4>
+                    <p th:text="'Scenario ID: ' + ${scenario.id}"></p>
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>Step</th>
+                            <th>Status</th>
+                            <th>Duration (ms)</th>
+                            <th>Error Message</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="step : ${scenario.steps}">
+                            <td th:text="${step.keyword} + ' ' + ${step.name}"></td>
+                            <td th:text="${step.result.status}"></td>
+                            <td th:text="${step.result.duration / 1000000}"></td>
+                            <td th:text="${step.result.errorMessage}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
