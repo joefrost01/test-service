@@ -6,58 +6,38 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import lombok.extern.slf4j.Slf4j;
+
+import java.time.LocalDate;
 
 import static org.hamcrest.Matchers.equalTo;
 
-
+@Slf4j
 public class BatchStepDefinitions {
 
-    private Response response;
-    private String baseUrl = "http://localhost:8081/api/books";
+    private LocalDate batchDate;
+    private String batchServiceUrl;
 
-    @Given("a book exists with an id of {int}")
-    public void a_book_exists_with_an_id_of(Integer id) {
-        RestAssured.given()
-                .contentType("application/json")
-                .body("{\"id\":" + id + ", \"title\": \"Sample Book\", \"author\": \"Author Name\"}")
-                .post(baseUrl)
-                .then()
-                .statusCode(201);
+    @Given("the batch date is set to the provided date")
+    public void set_batch_date() {
+        String date = System.getProperty("batchDate");
+        this.batchDate = LocalDate.parse(date);
+        this.batchServiceUrl = System.getProperty("batchServiceUrl");
     }
 
-    @When("I retrieve the book with id {int}")
-    public void i_retrieve_the_book_with_id(Integer id) {
-        response = RestAssured.get(baseUrl + "/" + id);
+    @When("I execute the batch for that date")
+    public void execute_batch_for_date() {
+        log.info("Executing batch for date: {}", batchDate);
+        RestAssured.given().contentType("application/json").param("date", batchDate)
+                .when().post(batchServiceUrl+"/api/v1/runBatch")
+                .then().statusCode(201);
     }
 
-    @Then("the book title should be {string}")
-    public void the_book_title_should_be(String title) {
-        response.then().statusCode(200).body("title", equalTo(title));
+    @Then("the batch should execute {int} jobs successfully")
+    public void verify_batch_completion() {
+        // Verification logic here
     }
 
-    @When("I update the book with id {int} to have the title {string}")
-    public void i_update_the_book_with_id_to_have_the_title(Integer id, String title) {
-        RestAssured.given()
-                .contentType("application/json")
-                .body("{\"title\": \"" + title + "\", \"author\": \"Updated Author\"}")
-                .put(baseUrl + "/" + id)
-                .then()
-                .statusCode(200);
-    }
-
-    @When("I delete the book with id {int}")
-    public void i_delete_the_book_with_id(Integer id) {
-        RestAssured.delete(baseUrl + "/" + id)
-                .then()
-                .statusCode(204);
-    }
-
-    @Then("the book should not exist with id {int}")
-    public void the_book_should_not_exist_with_id(Integer id) {
-        RestAssured.get(baseUrl + "/" + id)
-                .then()
-                .statusCode(404);
-    }
 }
 
 

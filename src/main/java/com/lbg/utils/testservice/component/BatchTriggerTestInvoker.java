@@ -2,6 +2,7 @@ package com.lbg.utils.testservice.component;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lbg.utils.testservice.config.Config;
 import com.lbg.utils.testservice.entity.CucumberReport;
 import io.cucumber.core.cli.Main;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import java.util.List;
 public class BatchTriggerTestInvoker {
 
     private final ObjectMapper objectMapper;
+    private final Config config;
 
     public List<CucumberReport.Feature> invokeTests() {
         // Generate a timestamp-based filename
@@ -41,4 +43,25 @@ public class BatchTriggerTestInvoker {
         return null;
     }
 
+    public List<CucumberReport.Feature> invokeTests2(String batchDate) {
+        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String jsonFilename = "target/cucumber-batch-trigger-" + timestamp + ".json";
+
+        System.setProperty("batchDate", batchDate);
+        System.setProperty("batchServiceUrl", config.getBatchServiceUrl());
+
+        String[] cucumberOptions = new String[]{
+                "--glue", "com.lbg.utils.testservice.stepdefs",
+                "classpath:features/batch_triggering",
+                "--plugin", "json:" + jsonFilename
+        };
+        try {
+            Main.run(cucumberOptions, Thread.currentThread().getContextClassLoader());
+            byte[] jsonBytes = Files.readAllBytes(Paths.get(jsonFilename));
+            return objectMapper.readValue(jsonBytes, new TypeReference<List<CucumberReport.Feature>>() {});
+        } catch (Exception e) {
+            log.error("Error running batch trigger tests", e);
+        }
+        return null;
+    }
 }
