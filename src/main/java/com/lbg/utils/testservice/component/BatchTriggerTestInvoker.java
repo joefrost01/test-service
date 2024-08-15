@@ -33,8 +33,8 @@ public class BatchTriggerTestInvoker {
         };
         try {
             Main.run(arguments, Thread.currentThread().getContextClassLoader());
-            String jsonString = Files.readString(Paths.get(jsonFilename));
-            return objectMapper.readValue(jsonString, new TypeReference<List<CucumberReport.Feature>>() {});
+            byte[] jsonBytes = Files.readAllBytes(Paths.get(jsonFilename));
+            return objectMapper.readValue(jsonBytes, new TypeReference<List<CucumberReport.Feature>>() {});
         } catch (Exception e) {
             log.error("Error running batch trigger tests", e);
         }
